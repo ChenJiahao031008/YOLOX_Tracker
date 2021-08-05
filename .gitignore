@@ -32,3 +32,4 @@
 *.app
 
 config/model_trt.engine
+build/*

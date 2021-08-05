@@ -33,13 +33,11 @@ ObjectTracking::ObjectTracking(const std::string &jsonFile)
     {
         std::cout << "config error!" << std::endl;
     }
+
 }
 
 ObjectTracking::~ObjectTracking()
 {
-    for (auto &ptr: vTrackers){
-        delete ptr;
-    }
 }
 
 bool ObjectTracking::parse_config(const std::string &path, sys_config &config)
@@ -97,6 +95,26 @@ void ObjectTracking::InitTrackerOnce(cv::Mat &frame, std::vector<Object> &vObjec
     // std::cout << "obj->rect: " << vTrackers.size() << std::endl;
 }
 
+void ObjectTracking::InitTracker(cv::Mat &frame, std::vector<Object> &vObject)
+{
+    // vTrackers.resize(vObject.size());
+    std::vector<KCFTracker> newTrackers;
+    for (size_t i=0; i<vObject.size(); ++i)
+    {
+        Object* obj = &vObject[i];
+        KCFTracker tracker = KCFTracker(HOG, FIXEDWINDOW, MULTISCALE, LAB);
+        tracker.scale_step = config.scale_step;
+        tracker.n_scales = config.num_scales;
+
+        tracker.init(obj->rect.tl(), obj->rect.br(), frame);
+
+        newTrackers.emplace_back(tracker);
+        obj->idx++;
+    }
+    vTrackers = newTrackers;
+    // std::cout << "obj->rect: " << vTrackers.size() << std::endl;
+}
+
 void ObjectTracking::RunTracker(cv::Mat &frame, std::vector<Object> &vObject)
 {
     if (frame.empty())
@@ -111,7 +129,7 @@ void ObjectTracking::RunTracker(cv::Mat &frame, std::vector<Object> &vObject)
     for( int i=0; i<vObject.size(); ++i){
         // std::cout << "obj.rect: " << obj->rect << std::endl;
         cv::Rect result = cv::Rect(0, 0, 0, 0);
-        result = vTrackers[i]->update(frame);
+        result = vTrackers[i].update(frame);
 
 #ifdef USE_OPENMP
 #pragma omp critical

@@ -6,7 +6,7 @@ project(yoloxTracker)
 ADD_DEFINITIONS("-std=c++11 -w -O2 -pthread")
 option(CUDA_USE_STATIC_CUDA_RUNTIME OFF)
 set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_BUILD_TYPE release)
 
 ## OpenMP相关配置
 FIND_PACKAGE( OpenMP REQUIRED)
@@ -19,7 +19,7 @@ endif()
 
 
 ## OpenCV相关设置
-find_package(OpenCV 3.4.4)
+find_package(OpenCV 3.4)
 include_directories(${OpenCV_INCLUDE_DIRS})
 # include_directories(${OpenCV_DIR}/include)
 

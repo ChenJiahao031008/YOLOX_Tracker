@@ -247,7 +247,7 @@ void KCFTracker::SetKCFParam(bool hog, bool fixed_window, bool multiscale, bool 
 // Destructor
 KCFTracker::~KCFTracker()
 {
-   printf("KCFTracker Destructor.\n");
+//    printf("KCFTracker Destructor.\n");
 
    _alphaf.release();
    _prob.release();

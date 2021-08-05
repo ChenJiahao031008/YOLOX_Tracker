@@ -26,15 +26,16 @@
 
 #define DEVICE 0 // GPU id
 #define NMS_THRESH 0.65
-#define BBOX_CONF_THRESH 0.3
+#define BBOX_CONF_THRESH 0.5
 
 struct Object
 {
     cv::Rect_<float> rect;
     int label;
     float prob;
-    long nFrames = 0;
-    long idx = 0;
+    int nFrames = 0;
+    int lostFrames = 0;
+    int idx = 0;
 };
 
 struct GridAndStride
@@ -87,7 +88,7 @@ public:
 
     void DecodeOutputs(float *prob, std::vector<Object> &objects, float scale, const int img_w, const int img_h);
 
-    void DrawObjects(const cv::Mat &bgr, const std::vector<Object> &objects);
+    void DrawObjects(const cv::Mat &bgr, const std::vector<Object> &objects, const std::string &windowName);
 
     void DoInference(nvinfer1::IExecutionContext &context, float *input, float *output, const int output_size, cv::Size input_shape);
 

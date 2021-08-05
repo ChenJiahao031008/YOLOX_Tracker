@@ -245,9 +245,8 @@ void YOLOX::DecodeOutputs(float *prob, std::vector<Object> &objects, float scale
 
     int count = picked.size();
 
-    // std::cout << "[INFO] Num of boxes: " << count << std::endl;
-
     objects.resize(count);
+    // std::cout << "[INFO] Num of boxes: " << objects.size() << std::endl;
     for (int i = 0; i < count; i++)
     {
         objects[i] = proposals[picked[i]];
@@ -271,7 +270,7 @@ void YOLOX::DecodeOutputs(float *prob, std::vector<Object> &objects, float scale
     }
 }
 
-void YOLOX::DrawObjects(const cv::Mat &bgr, const std::vector<Object> &objects)
+void YOLOX::DrawObjects(const cv::Mat &bgr, const std::vector<Object> &objects ,const std::string &windowName)
 {
 
     cv::Mat image = bgr.clone();
@@ -279,9 +278,12 @@ void YOLOX::DrawObjects(const cv::Mat &bgr, const std::vector<Object> &objects)
     for (size_t i = 0; i < objects.size(); i++)
     {
         const Object &obj = objects[i];
+        if (obj.label == 62)
+            continue;
 
-        // fprintf(stderr, "[OUTPUT] Label %s (%d), prob = %.5f at [%.2f,%.2f]; size = %.2f x %.2f\n", class_names[obj.label], obj.label, obj.prob,
-        //         obj.rect.x, obj.rect.y, obj.rect.width, obj.rect.height);
+        fprintf(stderr, "[OUTPUT] Label %s (%d), prob = %.5f at [%.2f,%.2f]; size = %.2f x %.2f\n", class_names[obj.label], obj.label, obj.prob,
+                obj.rect.x, obj.rect.y, obj.rect.width, obj.rect.height);
+        std::cout << "nFrames: " << obj.nFrames << "; lostFrames: " << obj.lostFrames << std::endl;
 
         cv::Scalar color = cv::Scalar(color_list[obj.label][0], color_list[obj.label][1], color_list[obj.label][2]);
         float c_mean = cv::mean(color)[0];
@@ -319,7 +321,7 @@ void YOLOX::DrawObjects(const cv::Mat &bgr, const std::vector<Object> &objects)
 
     // cv::imwrite("det_res.jpg", image);
     // fprintf(stderr, "save vis file\n");
-    cv::imshow("image", image);
+    cv::imshow(windowName, image);
     cv::waitKey(1);
 }
 
@@ -363,6 +365,7 @@ void YOLOX::DoInference(IExecutionContext &context, float *input, float *output,
 
 void YOLOX::Detect(cv::Mat &image, std::vector<Object> &objects)
 {
+    objects.clear();
     frame = image.clone();
 
     if (frame.empty())

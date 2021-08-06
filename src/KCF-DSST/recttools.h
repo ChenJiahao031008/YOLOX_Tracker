@@ -150,9 +150,11 @@ inline cv::Mat extractImage(const cv::Mat &in, float cx, float cy, float patch_w
 
     float ys_e = floor(cy + patch_height - 1) - floor(patch_height / 2);
     RectTools::cutOutsize(ys_e, in.rows);
+    cv::Rect res = cv::Rect(xs_s, ys_s, xs_e - xs_s, ys_e - ys_s);
+    res &= cv::Rect(0, 0, in.cols, in.rows);
+    // std::cout << res << std::endl;
 
-
-    return in(cv::Rect(xs_s, ys_s, xs_e - xs_s, ys_e - ys_s));
+    return in(res);
 }
 
 inline cv::Mat getGrayImage(cv::Mat img)

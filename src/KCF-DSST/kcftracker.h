@@ -133,8 +133,10 @@ public:
     float max_scale_factor; // max scaling rate
     float scale_lambda; // regularization
 
+    int successflag = 0;
+    int tmpflag = 0;
 
-protected:
+  protected:
     // Detect object in the current frame.
     cv::Point2f detect(cv::Mat z, cv::Mat x, float &peak_value);
 
@@ -163,7 +165,7 @@ protected:
     cv::Mat createHanningMatsForScale();
 
     // Initialization for scales
-    void dsstInit(const cv::Rect &roi, cv::Mat image);
+    int dsstInit(const cv::Rect &roi, cv::Mat image);
 
     // Compute the F^l in the paper
     cv::Mat get_scale_sample(const cv::Mat & image);
@@ -172,7 +174,7 @@ protected:
     void update_roi();
 
     // Train method for scaling
-    void train_scale(cv::Mat image, bool ini = false);
+    int train_scale(cv::Mat image, bool ini = false);
 
     // Detect the new scaling rate
     cv::Point2i detect_scale(cv::Mat image);

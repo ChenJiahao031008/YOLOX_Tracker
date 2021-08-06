@@ -20,14 +20,14 @@ ObjectTracking::ObjectTracking(const std::string &jsonFile)
         SILENT = config.silent;
         MULTISCALE = config.multi_scale;
 
-        std::cout << "HOG = " << HOG << std::endl;
-        std::cout << "LAB = " << LAB << std::endl;
-        std::cout << "FIXEDWINDOW = " << FIXEDWINDOW << std::endl;
-        std::cout << "SILENT = " << SILENT << std::endl;
-        std::cout << "MULTISCALE = " << MULTISCALE << std::endl;
+        std::cout << "[INFO]\n\tHOG = " << HOG << std::endl;
+        std::cout << "\tLAB = " << LAB << std::endl;
+        std::cout << "\tFIXEDWINDOW = " << FIXEDWINDOW << std::endl;
+        std::cout << "\tSILENT = " << SILENT << std::endl;
+        std::cout << "\tMULTISCALE = " << MULTISCALE << std::endl;
 
-        std::cout << "scale step = " << config.scale_step << std::endl;
-        std::cout << "num scales = " << config.num_scales << std::endl;
+        std::cout << "\tSCALE STEP = " << config.scale_step << std::endl;
+        std::cout << "\tNUM SCALES = " << config.num_scales << std::endl;
     }
     else
     {
@@ -38,6 +38,7 @@ ObjectTracking::ObjectTracking(const std::string &jsonFile)
 
 ObjectTracking::~ObjectTracking()
 {
+    vTrackers.clear();
 }
 
 bool ObjectTracking::parse_config(const std::string &path, sys_config &config)
@@ -95,30 +96,31 @@ void ObjectTracking::InitTrackerOnce(cv::Mat &frame, std::vector<Object> &vObjec
     // std::cout << "obj->rect: " << vTrackers.size() << std::endl;
 }
 
-void ObjectTracking::InitTracker(cv::Mat &frame, std::vector<Object> &vObject)
+void ObjectTracking::InitTracker(cv::Mat &image, std::vector<Object> &vObject)
 {
-    // vTrackers.resize(vObject.size());
-    std::vector<KCFTracker> newTrackers;
+    cv::Mat frame = image.clone();
+    std::vector<Object> newObject;
     for (size_t i=0; i<vObject.size(); ++i)
     {
-        Object* obj = &vObject[i];
+        Object obj = vObject[i];
         KCFTracker tracker = KCFTracker(HOG, FIXEDWINDOW, MULTISCALE, LAB);
         tracker.scale_step = config.scale_step;
         tracker.n_scales = config.num_scales;
-
-        tracker.init(obj->rect.tl(), obj->rect.br(), frame);
-
-        newTrackers.emplace_back(tracker);
-        obj->idx++;
+        tracker.init(cv::Point2i(obj.rect.tl()), cv::Point2i(obj.rect.br()), frame);
+        if (tracker.successflag == 0){
+            std::cout << "[WARNNING] NO TRACKER INIT HERE." << std::endl;
+            continue;
+        }
+        vTrackers.push_back(tracker);
+        newObject.push_back(obj);
     }
-    vTrackers = newTrackers;
-    // std::cout << "obj->rect: " << vTrackers.size() << std::endl;
+    vObject = newObject;
+    newObject.clear();
 }
 
-void ObjectTracking::RunTracker(cv::Mat &frame, std::vector<Object> &vObject)
+void ObjectTracking::RunTracker(cv::Mat &image, std::vector<Object> &vObject)
 {
-    if (frame.empty())
-        return;
+    cv::Mat frame = image.clone();
 #ifdef USE_OPENMP
     omp_set_num_threads(10);
 #pragma omp parallel
@@ -135,7 +137,7 @@ void ObjectTracking::RunTracker(cv::Mat &frame, std::vector<Object> &vObject)
 #pragma omp critical
 {
 #endif
-        vObject[i].rect = result;
+    vObject[i].rect = result;
 #ifdef USE_OPENMP
 }
 #endif
@@ -144,4 +146,5 @@ void ObjectTracking::RunTracker(cv::Mat &frame, std::vector<Object> &vObject)
 #ifdef USE_OPENMP
 }
 #endif
+    vTrackers.clear();
 }

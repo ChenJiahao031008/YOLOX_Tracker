@@ -26,7 +26,7 @@
 
 #define DEVICE 0 // GPU id
 #define NMS_THRESH 0.65
-#define BBOX_CONF_THRESH 0.5
+#define BBOX_CONF_THRESH 0.4
 
 struct Object
 {

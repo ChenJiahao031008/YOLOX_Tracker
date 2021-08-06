@@ -12,20 +12,24 @@ int main(int argc, char** argv)
     ObjectTracking tracker(jsonFile);
 
     cv::VideoCapture cap = cv::VideoCapture(0);
-    cap.set(cv::CAP_PROP_FRAME_WIDTH, 848);
-    cap.set(cv::CAP_PROP_FRAME_HEIGHT, 480);
+    double width = cap.get(CV_CAP_PROP_FRAME_WIDTH);
+    double height = cap.get(CV_CAP_PROP_FRAME_HEIGHT);
+    cap.set(CV_CAP_PROP_FRAME_WIDTH, width);
+    cap.set(CV_CAP_PROP_FRAME_HEIGHT, height);
 
     cv::Mat frame, lastframe;
-    std::vector<Object> predictObjs, observeObjs, lastObserveObjs;
+    std::vector<Object> currentObjs, previousObjs;
     DataAssociation dataAssociation;
 
     cap.read(frame);
     if (frame.empty())
         std::cout << "[ERRO] Read frame failed!" << std::endl;
+    else
+        std::cout << "[INFO] Image size : " << frame.size() << std::endl;
 
-    detector.Detect(frame, observeObjs);
-    tracker.InitTracker(frame, observeObjs);
-    lastObserveObjs = observeObjs;
+    detector.Detect(frame, currentObjs);
+    tracker.InitTracker(frame, currentObjs);
+    previousObjs = currentObjs;
     lastframe = frame.clone();
 
     while (cap.isOpened())
@@ -39,23 +43,24 @@ int main(int argc, char** argv)
         // detector.Detect(frame);
         auto start = std::chrono::system_clock::now();
         // 当前帧检测
-        detector.Detect(frame, observeObjs);
+        detector.Detect(frame, currentObjs);
         // 预测：采用上一帧初始化
-        tracker.InitTracker(lastframe, lastObserveObjs);
+        tracker.InitTracker(lastframe, previousObjs);
         // 对当前帧进行预测
-        tracker.RunTracker(frame, lastObserveObjs);
-        predictObjs = lastObserveObjs;
-        // detector.DrawObjects(frame, predictObjs, "predictObjs");
+        tracker.RunTracker(frame, previousObjs);
+        detector.DrawObjects(frame, previousObjs, "predictObjs");
         // 数据关联处理
-        dataAssociation.Association(predictObjs, observeObjs);
+        dataAssociation.Association(previousObjs, currentObjs);
+        // 绘图显示
+        detector.DrawObjects(frame, currentObjs, "observeObjs");
+        // cv::waitKey(0);
+
         lastframe = frame.clone();
-        lastObserveObjs = observeObjs;
+        previousObjs = currentObjs;
         // 耗时计算
         auto end = std::chrono::system_clock::now();
-        // std::cout << "[INFO] Cost Time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms" << std::endl;
-        // 绘图显示
-        detector.DrawObjects(frame, observeObjs, "observeObjs");
-        // cv::waitKey(0);
+        std::cout << "[INFO] Cost Time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms" << std::endl;
+
     }
     return 0;
 }

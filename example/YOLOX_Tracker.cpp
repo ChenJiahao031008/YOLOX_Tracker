@@ -16,8 +16,9 @@ int main(int argc, char** argv)
     cv::VideoCapture cap = cv::VideoCapture(0);
     double width = cap.get(CV_CAP_PROP_FRAME_WIDTH);
     double height = cap.get(CV_CAP_PROP_FRAME_HEIGHT);
-    cap.set(CV_CAP_PROP_FRAME_WIDTH, 1080);
+    cap.set(CV_CAP_PROP_FRAME_WIDTH, 1280);
     cap.set(CV_CAP_PROP_FRAME_HEIGHT, 720);
+
 
     cv::Mat frame, lastframe;
     std::vector<Object> currentObjs, previousObjs;
@@ -56,19 +57,19 @@ int main(int argc, char** argv)
             detector.Detect(frame, currentObjs);
             // 数据关联处理
             dataAssociation.Association(previousObjs, currentObjs);
+            // 预测：采用当前帧帧初始化
+            tracker.InitTracker(frame, currentObjs);
             // 绘制结果
             detector.DrawObjects(frame, currentObjs, "RESULT: SHOW IMAGE");
             previousObjs = currentObjs;
             count = 1;
-            // 预测：采用当前帧帧初始化
-            tracker.InitTracker(frame, previousObjs);
+
         }
         else
         {
             std::cout << "[INFO] TRACKING..." << std::endl;
             // 对当前帧进行预测
             tracker.RunTracker(frame, previousObjs);
-            printf("here!\n");
             // 绘制结果
             detector.DrawObjects(frame, previousObjs, "RESULT: SHOW IMAGE");
             lastframe = frame.clone();

@@ -1,6 +1,6 @@
 #include "objecttracking.h"
 
-// #define USE_OPENMP
+#define USE_OPENMP
 #ifdef USE_OPENMP
 #include "omp.h"
 #endif
@@ -79,11 +79,15 @@ bool ObjectTracking::parse_config(const std::string &path, sys_config &config)
 }
 
 
-void ObjectTracking::InitTracker(cv::Mat &image, std::vector<Object> &vObject)
+void ObjectTracking::InitTracker(cv::Mat &frame, std::vector<Object> &vObject)
 {
     vTrackers.clear();
-    cv::Mat frame = image.clone();
     std::vector<Object> newObject;
+#ifdef USE_OPENMP
+    omp_set_num_threads(10);
+
+#pragma omp parallel for
+#endif
     for (size_t i=0; i<vObject.size(); ++i)
     {
         Object obj = vObject[i];
@@ -103,7 +107,7 @@ void ObjectTracking::InitTracker(cv::Mat &image, std::vector<Object> &vObject)
 
 void ObjectTracking::RunTracker(cv::Mat &frame, std::vector<Object> &vObject)
 {
-    std::cout << "[DEBUG]  RunTracker " << std::endl;
+    // std::cout << "[DEBUG]  RunTracker " << std::endl;
     assert(vObject.size() == vTrackers.size());
 
 #ifdef USE_OPENMP
@@ -112,10 +116,7 @@ void ObjectTracking::RunTracker(cv::Mat &frame, std::vector<Object> &vObject)
 #pragma omp parallel for
 #endif
     for( int i=0; i<vObject.size(); ++i){
-        // cv::Mat frame = image.clone();
-        std::cout << "obj.rect: " << i << "/" << vTrackers.size() << vObject[i].rect << std::endl;
         vObject[i].rect = vTrackers[i].update(frame);
     }
-    std::cout << "hereeeee" <<std::endl;
      // vTrackers.clear();
 }

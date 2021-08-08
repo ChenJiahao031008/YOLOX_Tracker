@@ -300,7 +300,6 @@ void KCFTracker::init(const cv::Point pt1, const cv:: Point pt2, cv::Mat image)
 // Update position based on the new frame
 cv::Rect KCFTracker::update(cv::Mat image)
 {
-    std::cout << image.size() << std::endl;
     if (_roi.x + _roi.width <= 0) _roi.x = -_roi.width + 1;
     if (_roi.y + _roi.height <= 0) _roi.y = -_roi.height + 1;
     if (_roi.x >= image.cols - 1) _roi.x = image.cols - 2;
@@ -341,7 +340,6 @@ cv::Rect KCFTracker::update(cv::Mat image)
 
     assert(_roi.width >= 0 && _roi.height >= 0);
     cv::Mat x = getFeatures(image, 0);
-    printf("tmp");
     train(x, interp_factor);
 
 

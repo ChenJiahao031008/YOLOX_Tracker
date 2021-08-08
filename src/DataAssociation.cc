@@ -16,7 +16,7 @@ void DataAssociation::Association(std::vector<Object> &predictObjs, std::vector<
     std::vector<Object> predictOutputObjs, finialObjs;
     finialObjs = observeObjs;
     predictOutputObjs = predictObjs;
-    std::cout << "[DEDUG] Tracker Num: " << predictObjs.size() << std::endl;
+    // std::cout << "[DEDUG] Tracker Num: " << predictObjs.size() << std::endl;
 
     for (size_t i = 0; i < predictObjs.size(); ++i)
     {
@@ -47,7 +47,6 @@ void DataAssociation::Association(std::vector<Object> &predictObjs, std::vector<
         else
         {
             // 只有预测存在
-            std::cout << "[DEDUG] predictOutputObjs[i].label: " << predictOutputObjs[i].label << std::endl;
             predictOutputObjs[i].lostFrames++;
             if (predictObjs[i].prob > 0.75){
                 if (predictObjs[i].lostFrames < LOST_NFRAMES && predictObjs[i].nFrames > 1)

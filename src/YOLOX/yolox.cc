@@ -283,7 +283,7 @@ void YOLOX::DrawObjects(const cv::Mat &bgr, const std::vector<Object> &objects ,
 
         fprintf(stderr, "[OUTPUT] Label %s (%d), prob = %.5f at [%.2f,%.2f]; size = %.2f x %.2f\n", class_names[obj.label], obj.label, obj.prob,
                 obj.rect.x, obj.rect.y, obj.rect.width, obj.rect.height);
-        std::cout << "nFrames: " << obj.nFrames << "; lostFrames: " << obj.lostFrames << std::endl;
+        // std::cout << "nFrames: " << obj.nFrames << "; lostFrames: " << obj.lostFrames << std::endl;
 
         cv::Scalar color = cv::Scalar(color_list[obj.label][0], color_list[obj.label][1], color_list[obj.label][2]);
         float c_mean = cv::mean(color)[0];

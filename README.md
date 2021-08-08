@@ -6,4 +6,4 @@
 
 demo版本的效果如下：
 
-![](README.assets/i9v3q-j28uz.gif)
+<img src="pic/demo.gif" style="zoom: 50%;" />

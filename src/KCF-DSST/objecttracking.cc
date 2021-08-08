@@ -1,6 +1,6 @@
 #include "objecttracking.h"
 
-#define USE_OPENMP
+// #define USE_OPENMP
 #ifdef USE_OPENMP
 #include "omp.h"
 #endif
@@ -31,7 +31,7 @@ ObjectTracking::ObjectTracking(const std::string &jsonFile)
     }
     else
     {
-        std::cout << "config error!" << std::endl;
+        std::cout << "[ERRO] CONFIG ERROR!" << std::endl;
     }
 
 }
@@ -78,26 +78,10 @@ bool ObjectTracking::parse_config(const std::string &path, sys_config &config)
     return true;
 }
 
-void ObjectTracking::InitTrackerOnce(cv::Mat &frame, std::vector<Object> &vObject)
-{
-    for (auto &obj: vObject){
-        if (obj.nFrames == 0)
-        {
-            KCFTracker* tracker = new KCFTracker(HOG, FIXEDWINDOW, MULTISCALE, LAB);
-            tracker->scale_step = config.scale_step;
-            tracker->n_scales = config.num_scales;
-
-            tracker->init(obj.rect.tl(), obj.rect.br(), frame);
-
-            vTrackers.emplace_back(tracker);
-            obj.idx++;
-        }
-    }
-    // std::cout << "obj->rect: " << vTrackers.size() << std::endl;
-}
 
 void ObjectTracking::InitTracker(cv::Mat &image, std::vector<Object> &vObject)
 {
+    vTrackers.clear();
     cv::Mat frame = image.clone();
     std::vector<Object> newObject;
     for (size_t i=0; i<vObject.size(); ++i)
@@ -115,36 +99,23 @@ void ObjectTracking::InitTracker(cv::Mat &image, std::vector<Object> &vObject)
         newObject.push_back(obj);
     }
     vObject = newObject;
-    newObject.clear();
 }
 
-void ObjectTracking::RunTracker(cv::Mat &image, std::vector<Object> &vObject)
+void ObjectTracking::RunTracker(cv::Mat &frame, std::vector<Object> &vObject)
 {
-    cv::Mat frame = image.clone();
+    std::cout << "[DEBUG]  RunTracker " << std::endl;
+    assert(vObject.size() == vTrackers.size());
+
 #ifdef USE_OPENMP
     omp_set_num_threads(10);
-#pragma omp parallel
-{
 
-#pragma omp for
+#pragma omp parallel for
 #endif
     for( int i=0; i<vObject.size(); ++i){
-        // std::cout << "obj.rect: " << obj->rect << std::endl;
-        cv::Rect result = cv::Rect(0, 0, 0, 0);
-        result = vTrackers[i].update(frame);
-
-#ifdef USE_OPENMP
-#pragma omp critical
-{
-#endif
-    vObject[i].rect = result;
-#ifdef USE_OPENMP
-}
-#endif
-
+        // cv::Mat frame = image.clone();
+        std::cout << "obj.rect: " << i << "/" << vTrackers.size() << vObject[i].rect << std::endl;
+        vObject[i].rect = vTrackers[i].update(frame);
     }
-#ifdef USE_OPENMP
-}
-#endif
-    vTrackers.clear();
+    std::cout << "hereeeee" <<std::endl;
+     // vTrackers.clear();
 }

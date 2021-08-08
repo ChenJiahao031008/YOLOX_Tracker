@@ -55,9 +55,9 @@ public:
 
     void RunTracker(cv::Mat &image, std::vector<Object> &vObject);
 
-    void InitTrackerOnce(cv::Mat &frame, std::vector<Object> &vObject);
-
     void InitTracker(cv::Mat &frame, std::vector<Object> &vObject);
+
+    void ModifyTracker(cv::Mat &image, std::vector<Object> &vObject);
 };
 
 #endif

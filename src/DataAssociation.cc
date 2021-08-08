@@ -1,5 +1,7 @@
 #include "DataAssociation.h"
 
+#define LOST_NFRAMES 1
+
 DataAssociation::DataAssociation()
 {
 }
@@ -24,7 +26,7 @@ void DataAssociation::Association(std::vector<Object> &predictObjs, std::vector<
             cv::Rect rectIntersection = (predictObjs[i].rect) & (observeObjs[j].rect);
             cv::Rect rectUnion = (predictObjs[i].rect) | (observeObjs[j].rect);
             float currentIoU = rectIntersection.area()*1.0 / rectUnion.area();
-            if (currentIoU < 0.65 )
+            if (currentIoU < 0.5 )
                 continue;
             if (currentIoU > maxIoU){
                 maxIoU = currentIoU;
@@ -37,6 +39,8 @@ void DataAssociation::Association(std::vector<Object> &predictObjs, std::vector<
             std::cout << "[DEDUG] Association: " << i << "; " << vCorresponds[i] << std::endl;
             predictOutputObjs[i].nFrames++;
             predictOutputObjs[i].lostFrames = 0;
+            predictOutputObjs[i].label = finialObjs[vCorresponds[i]].label;
+            predictOutputObjs[i].prob = finialObjs[vCorresponds[i]].prob;
             // TODO: 补充数据融合部分(采用卡尔曼滤波)
             finialObjs[vCorresponds[i]] = predictOutputObjs[i];
         }
@@ -45,19 +49,16 @@ void DataAssociation::Association(std::vector<Object> &predictObjs, std::vector<
             // 只有预测存在
             std::cout << "[DEDUG] predictOutputObjs[i].label: " << predictOutputObjs[i].label << std::endl;
             predictOutputObjs[i].lostFrames++;
-            if (predictObjs[i].lostFrames < 20 && predictObjs[i].nFrames > 2)
-            {
-                finialObjs.push_back(predictOutputObjs[i]);
-            }
-            else if (predictObjs[i].prob > 0.75 && predictObjs[i].lostFrames < 20)
-            {
-                finialObjs.push_back(predictOutputObjs[i]);
-            }else if (predictObjs[i].rect.area() < 20000 && predictObjs[i].lostFrames < 50)
-            {
-                finialObjs.push_back(predictOutputObjs[i]);
-            }
-            if (predictObjs[i].lostFrames >= 20){
-                predictOutputObjs[i].nFrames = 0;
+            if (predictObjs[i].prob > 0.75){
+                if (predictObjs[i].lostFrames < LOST_NFRAMES && predictObjs[i].nFrames > 1)
+                    finialObjs.push_back(predictOutputObjs[i]);
+                else
+                    predictOutputObjs[i].nFrames = 0;
+            }else{
+                if (predictObjs[i].lostFrames < 2 * LOST_NFRAMES && predictObjs[i].nFrames > 1)
+                    finialObjs.push_back(predictOutputObjs[i]);
+                else
+                    predictOutputObjs[i].nFrames = 0;
             }
         }
     }

@@ -112,7 +112,6 @@ void ObjectTracking::RunTracker(cv::Mat &frame, std::vector<Object> &vObject)
 
 #ifdef USE_OPENMP
     omp_set_num_threads(10);
-
 #pragma omp parallel for
 #endif
     for( int i=0; i<vObject.size(); ++i){

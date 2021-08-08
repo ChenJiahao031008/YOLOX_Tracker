@@ -39,7 +39,21 @@ void DataAssociation::Association(std::vector<Object> &predictObjs, std::vector<
             std::cout << "[DEDUG] Association: " << i << "; " << vCorresponds[i] << std::endl;
             predictOutputObjs[i].nFrames++;
             predictOutputObjs[i].lostFrames = 0;
+            // 更新标签
             predictOutputObjs[i].label = finialObjs[vCorresponds[i]].label;
+            // 计算融合后目标框大小
+            // 计算权重
+            float weight = (predictOutputObjs[i].prob)  *1.0 / (predictOutputObjs[i].prob + finialObjs[vCorresponds[i]].prob);
+            cv::Rect2f fuse;
+            // 根据权重分配目标框的大小
+            fuse.width = weight * predictOutputObjs[i].rect.width + (1 - weight) * finialObjs[vCorresponds[i]].rect.width;
+            fuse.height = weight * predictOutputObjs[i].rect.height + (1 - weight) * finialObjs[vCorresponds[i]].rect.height;
+            // 修正目标框的位置
+            fuse.x = weight * predictOutputObjs[i].rect.x + (1 - weight) * finialObjs[vCorresponds[i]].rect.x;
+            fuse.y = weight * predictOutputObjs[i].rect.y + (1 - weight) * finialObjs[vCorresponds[i]].rect.y;
+            // 更新目标框
+            predictOutputObjs[i].rect = fuse;
+            // 更新概率
             predictOutputObjs[i].prob = finialObjs[vCorresponds[i]].prob;
             // TODO: 补充数据融合部分(采用卡尔曼滤波)
             finialObjs[vCorresponds[i]] = predictOutputObjs[i];

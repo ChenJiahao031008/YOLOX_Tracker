@@ -46,6 +46,8 @@ private:
 
     std::vector<KCFTracker> vTrackers;
 
+    cv::Mat keyFrame;
+
 public:
     ObjectTracking(const std::string &jsonFile);
 
@@ -58,6 +60,12 @@ public:
     void InitTracker(cv::Mat &frame, std::vector<Object> &vObject);
 
     void ModifyTracker(cv::Mat &image, std::vector<Object> &vObject);
+
+    void Histogram(const cv::Mat &image, cv::Mat &hist);
+
+    int CompareHist(const cv::Mat &hist1, const cv::Mat &hist2);
+
+    int ImageSimilarityFlag(const cv::Mat &currentFrame, std::vector<Object> &vObject);
 };
 
 #endif

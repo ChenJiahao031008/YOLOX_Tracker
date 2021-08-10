@@ -94,10 +94,6 @@ public:
     // Constructor
     KCFTracker(bool hog = true, bool fixed_window = true, bool multiscale = true, bool lab = true);
 
-    // 第二种初始化方式
-    KCFTracker(){};
-    void SetKCFParam(bool hog = true, bool fixed_window = true, bool multiscale = true, bool lab = true);
-
     virtual ~KCFTracker();
 
     // Initialize tracker

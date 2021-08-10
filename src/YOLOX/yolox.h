@@ -36,6 +36,7 @@ struct Object
     int nFrames = 0;
     int lostFrames = 0;
     int idx = 0;
+    int similarity = -1;
     // int trackerIdx = -1;
 };
 

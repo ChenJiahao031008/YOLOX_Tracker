@@ -3,7 +3,7 @@
 #include "objecttracking.h"
 #include "DataAssociation.h"
 
-#define INTERVAL 5
+#define INTERVAL 4
 
 int main(int argc, char** argv)
 {
@@ -20,7 +20,7 @@ int main(int argc, char** argv)
     cap.set(CV_CAP_PROP_FRAME_HEIGHT, 720);
 
 
-    cv::Mat frame, lastframe;
+    cv::Mat frame;
     std::vector<Object> currentObjs, previousObjs;
     DataAssociation dataAssociation;
 
@@ -33,9 +33,9 @@ int main(int argc, char** argv)
     detector.Detect(frame, currentObjs);
     tracker.InitTracker(frame, currentObjs);
     previousObjs = currentObjs;
-    lastframe = frame.clone();
 
     int count = 1;
+    int reDetectedFlag = 0;
     while (cap.isOpened())
     {
         cap.read(frame);
@@ -47,38 +47,58 @@ int main(int argc, char** argv)
         // detector.Detect(frame);
         auto start = std::chrono::system_clock::now();
 
-        if (count%INTERVAL==0){
-            std::cout << "[INFO] DETECTING..." << std::endl;
-            // 预测：采用上一帧初始化
-            tracker.InitTracker(lastframe, previousObjs);
-            // 对当前帧进行预测
+        // 对当前帧进行预测
+        if (reDetectedFlag == 0){
             tracker.RunTracker(frame, previousObjs);
+            if (tracker.ImageSimilarityFlag(frame, previousObjs) == 1)
+                count = 0;
+        }else{
+            count = INTERVAL;
+        }
+
+
+        if (count%INTERVAL==0){
+            // std::cout << "[INFO] DETECTING..." << std::endl;
             // 当前帧检测
             detector.Detect(frame, currentObjs);
+            if ( currentObjs.size() == 0 ){
+                std::cout << "[WARNNING] OBJECTS SIZE IS ZERO" << std::endl;
+                reDetectedFlag = 1;
+                continue;
+            }
             // 数据关联处理
             dataAssociation.Association(previousObjs, currentObjs);
-            // 预测：采用当前帧帧初始化
-            tracker.InitTracker(frame, currentObjs);
-            // 绘制结果
-            detector.DrawObjects(frame, currentObjs, "RESULT: SHOW IMAGE");
-            previousObjs = currentObjs;
-            count = 1;
-
+            if (currentObjs.size() != 0)
+            {
+                // 预测：采用当前帧帧初始化
+                tracker.InitTracker(frame, currentObjs);
+                // 绘制结果
+                detector.DrawObjects(frame, currentObjs, "RESULT: SHOW IMAGE");
+                previousObjs.clear();
+                previousObjs = currentObjs;
+                count = 1;
+                reDetectedFlag = 0;
+            }
+            else
+            {
+                reDetectedFlag = 1;
+            }
         }
         else
         {
-            std::cout << "[INFO] TRACKING..." << std::endl;
-            // 对当前帧进行预测
-            tracker.RunTracker(frame, previousObjs);
+            // std::cout << "[INFO] TRACKING..." << std::endl;
             // 绘制结果
             detector.DrawObjects(frame, previousObjs, "RESULT: SHOW IMAGE");
-            lastframe = frame.clone();
             count++;
+
         }
 
         // 耗时计算
         auto end = std::chrono::system_clock::now();
         std::cout << "[INFO] Cost Time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms" << std::endl;
+
+        // debug
+        // cv::waitKey(0);
 
     }
     return 0;

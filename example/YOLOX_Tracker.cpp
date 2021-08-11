@@ -18,7 +18,8 @@ int main(int argc, char** argv)
     double height = cap.get(CV_CAP_PROP_FRAME_HEIGHT);
     cap.set(CV_CAP_PROP_FRAME_WIDTH, 1280);
     cap.set(CV_CAP_PROP_FRAME_HEIGHT, 720);
-
+    // cap.set(CV_CAP_PROP_FRAME_WIDTH, width);
+    // cap.set(CV_CAP_PROP_FRAME_HEIGHT, height);
 
     cv::Mat frame;
     std::vector<Object> currentObjs, previousObjs;

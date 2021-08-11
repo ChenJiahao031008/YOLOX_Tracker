@@ -17,11 +17,11 @@ void DataAssociation::Association(std::vector<Object> &predictObjs, std::vector<
     finialObjs = observeObjs;
 
     for (auto &obj: predictObjs){
+        // std::cout << obj.similarity  << std::endl;
         if (obj.similarity != -1){
             predictinputObjs.push_back(obj);
         }
     }
-    predictinputObjs = predictOutputObjs;
 
     if (predictinputObjs.size()==0){
         std::cout << "[WARNNING] EMPTY SIZE! " << std::endl;
@@ -29,6 +29,7 @@ void DataAssociation::Association(std::vector<Object> &predictObjs, std::vector<
         observeObjs = finialObjs;
         return;
     }
+    predictinputObjs = predictOutputObjs;
 
     for (size_t i = 0; i < predictinputObjs.size(); ++i)
     {
